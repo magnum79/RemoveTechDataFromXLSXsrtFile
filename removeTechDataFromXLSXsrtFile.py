@@ -23,8 +23,15 @@ subdirs = [path.join(d, o) for o in listdir(d)
 
 def main():
   for sd in subdirs:
-    print sd
+    printCP(sd)
     processDirectory(sd)
+    raw_input("Press Enter to continue...")
+
+def printCP(s):
+  if isinstance(s, str):
+    print s.decode('cp1251')
+  else:
+    print s
 
 def processDirectory(d):
   xslxFiles = [path.join(d, o) for o in listdir(d) 
@@ -33,7 +40,7 @@ def processDirectory(d):
     processSrtFile(xf)
 
 def processSrtFile(filename):
-  print filename
+  printCP(filename)
   wb = load_workbook(filename, data_only=True)
   names = wb.sheetnames
   for name in names:
@@ -41,10 +48,15 @@ def processSrtFile(filename):
     sl = processSheet(ws)
     if sl != []:
       of, oe = path.splitext(filename)
+      if isinstance(of, str):
+        of = of.decode('cp1251');
+        oe = oe.decode('cp1251');
+      if isinstance(name, str):
+        name = name.decode('cp1251');
       outFile = u"{}.2.{}{}".format(
-        of.decode("utf-8"),
+        of,
         name,
-        oe.decode("utf-8"))
+        oe)
       print u"> " + outFile
       writeResultFile(outFile, sl)
 
