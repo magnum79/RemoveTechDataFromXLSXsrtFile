@@ -12,6 +12,7 @@ __copyright__ = "Copyright (C) 2017 Roman Ivanov"
 __license__ = "Public Domain"
 __version__ = "1.0"
 
+import sys
 from os import path, listdir, sep
 from openpyxl import load_workbook, Workbook 
 
@@ -23,12 +24,14 @@ subdirs = [path.join(d, o) for o in listdir(d)
 
 def main():
   for sd in subdirs:
+    if path.split(sd)[1][0] == d:
+      continue
     printCP(sd)
     processDirectory(sd)
   raw_input("Press Enter to continue...")
 
 def printCP(s):
-  if isinstance(s, str):
+  if sys.stdout.encoding != "UTF-8":
     print s.decode('cp1251')
   else:
     print s
@@ -37,24 +40,28 @@ def processDirectory(d):
   xslxFiles = [path.join(d, o) for o in listdir(d) 
                     if path.splitext(path.join(d,o))[1].lower() == ext]
   wb = Workbook(write_only=True)
+  isEmpty = True
   for xf in xslxFiles:
-    sl = processSrtFile(xf)
-    ws = wb.create_sheet()
-    print ws
-    for row in sl:
-      ws.append(row)
+    sls = processSrtFile(xf)
+    for sl in sls:
+      isEmpty = False
+      ws = wb.create_sheet(title=path.splitext(path.split(xf)[1])[0].decode("UTF-8"))
+      for row in sl:
+        ws.append(row)
   filename = d + sep + "!Dialogs" + ext
-  wb.save(filename)
+  if not isEmpty:
+    wb.save(filename)
 
 def processSrtFile(filename):
-  printCP(filename)
+  printCP("\t" + path.split(filename)[1])
   wb = load_workbook(filename, data_only=True)
   names = wb.sheetnames
   sls = []
   for name in names:
     ws = wb.get_sheet_by_name(name)
     sl = processSheet(ws)
-    sls.extend(sl)
+    if sl != []:
+      sls.append(sl)
   return sls
 
 def processSheet(ws):
